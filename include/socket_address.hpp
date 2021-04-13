@@ -43,3 +43,34 @@ public:
 
     void clear();
 };
+
+enum class DOMAIN {
+    IPV4 = AF_INET
+};
+
+template<DOMAIN Domain>
+class sock_address : public socket_address
+{
+private:
+    using base = socket_address;
+public:
+    sock_address(const char* addr, port_t port)
+        : base(static_cast<domain_t>(Domain), addr, port)
+    {}
+    sock_address(const sock_address<Domain>&) = default;
+    sock_address(sock_address<Domain>&& addr) noexcept
+        : base(std::move(addr))
+    {}
+
+    sock_address& operator=(const sock_address<Domain>&) = default;
+    sock_address& operator=(sock_address<Domain>& addr) noexcept
+    {
+        base::operator=(addr);
+        return *this;
+    }
+
+};
+
+namespace ipv4 {
+    using address = sock_address<DOMAIN::IPV4>;
+}
